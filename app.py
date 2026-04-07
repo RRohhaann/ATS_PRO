@@ -8,8 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = '3G11kBUu5rracAAV6AuyY1exZYa9t6nr'
-# app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 def preprocess_text(text):
     text = re.sub('http\S+\s*', ' ', text)
