@@ -1,14 +1,21 @@
 from flask import Flask, render_template, request, jsonify
 import re
+import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from PyPDF2 import PdfReader
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+
+# Load secrets from environment variables
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 def preprocess_text(text):
     text = re.sub('http\S+\s*', ' ', text)
@@ -39,16 +46,12 @@ def get_keyword_gap(resume_text, jd_text):
     missing = jd_words - resume_words - stop_words
     return list(missing)[:10] # Top 10 missing words
 
-# @app.route('/')
-# def index():
-#     return render_template('index.html')
-
 @app.route('/templates')
 def templates():
     return render_template('templates.html')
 
 # Database Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 db = SQLAlchemy(app)
 
 # User Model (Database Table)
