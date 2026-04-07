@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ATS Pro - Resume Templates</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .template-container { display: flex; gap: 20px; justify-content: center; padding: 20px; }
+        .resume-preview { 
+            width: 210mm; min-height: 297mm; 
+            background: white; color: black; 
+            padding: 40px; margin: 20px auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        /* Editable areas should look clickable on hover */
+        [contenteditable="true"]:hover { outline: 2px dashed #00e5ff; cursor: edit; }
+        
+        .controls { text-align: center; margin-top: 20px; }
+        .template-card { 
+            border: 1px solid #00e5ff; padding: 10px; cursor: pointer; 
+            border-radius: 10px; transition: 0.3s;
+        }
+        .template-card:hover { background: rgba(0, 229, 255, 0.1); }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-rocket"></i> ATS<span>PRO</span></div>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/templates">Templates</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h2 style="text-align:center;">Choose & Edit a Template</h2>
+        <p style="text-align:center; color:#94a3b8;">Click on any text inside the resume to edit it!</p>
+        
+        <div class="controls">
+            <button onclick="downloadResume()" style="width: auto; padding: 10px 40px;">
+                <i class="fas fa-download"></i> Download as PDF
+            </button>
+        </div>
+
+        <div id="printable-area" class="resume-preview">
+            <h1 contenteditable="true" style="margin-bottom:0;">YOUR NAME</h1>
+            <p contenteditable="true" style="color: #666;">Email: your@email.com | Phone: +91 123456789</p>
+            <hr>
+            <h3 style="color: #008ba3;">PROFESSIONAL SUMMARY</h3>
+            <p contenteditable="true">Write a short summary about your career goals and skills here...</p>
+            
+            <h3 style="color: #008ba3;">EXPERIENCE</h3>
+            <div contenteditable="true">
+                <strong>Job Title</strong> | Company Name (2020 - Present)
+                <ul>
+                    <li>Role description 1</li>
+                    <li>Role description 2</li>
+                </ul>
+            </div>
+
+            <h3 style="color: #008ba3;">EDUCATION</h3>
+            <div contenteditable="true">
+                <strong>University Name</strong> | Degree (2016 - 2020)
+                <p>CGPA: 9.0</p>
+            </div>
+
+            <h3 style="color: #008ba3;">SKILLS</h3>
+            <p contenteditable="true">Python, Flask, JavaScript, SQL, Machine Learning</p>
+        </div>
+    </div>
+
+    <script>
+        function downloadResume() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
