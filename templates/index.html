@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Pro - Smart Resume Checker</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo"><i class="fas fa-rocket"></i> ATS<span>PRO</span></div>
+        <ul class="nav-links">
+            <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="/templates"><i class="fas fa-file-invoice"></i> Templates</a></li>
+            <li><a href="#checker"><i class="fas fa-search"></i> Checker</a></li>
+            <li><a href="#"><i class="fas fa-lightbulb"></i> AI Tips</a></li>
+            <li style="color: #00e5ff; font-weight: bold;">Hi, {{ username }}</li>
+            <li><a href="/logout" style="color: #ff4d4d;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container" id="checker">
+        <header>
+            <h1>ATS Resume Score Checker</h1>
+            <p>Optimize your resume for applicant tracking systems.</p>
+        </header>
+
+        <form id="atsForm" onsubmit="handleSubmit(event)">
+            <div class="input-group">
+                <label><i class="fas fa-briefcase"></i> Job Description</label>
+                <textarea id="job_description" name="job_description" rows="6"
+                    placeholder="Paste the job description here..." required></textarea>
+            </div>
+
+            <div class="input-group">
+                <label><i class="fas fa-file-alt"></i> Resume (Text OR Upload)</label>
+
+                <textarea id="resume_text" name="resume_text" rows="6" placeholder="Paste your resume content..."
+                    oninput="handleTextInput()"></textarea>
+
+                <p style="text-align: center; color: #64748b; margin: 5px 0;">-- OR --</p>
+
+                <div class="file-upload-wrapper" id="uploadWrapper">
+                    <div class="file-upload-input" id="dropZone">
+                        <input type="file" id="resume_file" name="resume_file" accept=".pdf"
+                            onchange="handleFileSelect(this)">
+                        <div id="uploadPlaceholder">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click to Upload PDF</p>
+                        </div>
+                        <div id="fileStatus" style="display: none;">
+                            <span id="fileName" style="color: #00e5ff; font-weight: bold;"></span>
+                            <i class="fas fa-times-circle" id="removeFileBtn" onclick="clearFile(event)"
+                                style="color: #ff4d4d; margin-left: 10px; cursor: pointer;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn">Analyze Resume</button>
+        </form>
+
+        <div id="result-container" class="printable" style="display:none;">
+            <div class="score-card">
+                <h2 id="scoreText">0% Match</h2>
+                <p id="feedbackText"></p>
+            </div>
+
+            <div class="analysis-grid">
+                <div class="card">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Keyword Gap</h3>
+                    <ul id="missingKeywords"></ul>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-magic"></i> Improvement Tips</h3>
+                    <ul id="aiTips">
+                        <li>Quantify your results with numbers (e.g., 15% increase).</li>
+                        <li>Ensure your contact details are at the top.</li>
+                        <li>Use standard font styles like Arial or Calibri.</li>
+                    </ul>
+                </div>
+            </div>
+            <button type="button" onclick="downloadReport()" class="download-btn">
+                <i class="fas fa-file-pdf"></i> Download Full Report
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const resumeText = document.getElementById('resume_text');
+        const resumeFile = document.getElementById('resume_file');
+        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+        const fileStatus = document.getElementById('fileStatus');
+        const fileNameDisplay = document.getElementById('fileName');
+        const uploadWrapper = document.getElementById('uploadWrapper');
+
+        // Logic: Agar Text dala toh File disable
+        function handleTextInput() {
+            if (resumeText.value.trim().length > 0) {
+                resumeFile.disabled = true;
+                uploadWrapper.style.opacity = "0.4";
+                uploadWrapper.style.pointerEvents = "none";
+            } else {
+                resumeFile.disabled = false;
+                uploadWrapper.style.opacity = "1";
+                uploadWrapper.style.pointerEvents = "auto";
+            }
+        }
+
+        // Logic: File select hone par Show name aur cross button
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                const name = input.files[0].name;
+                fileNameDisplay.innerText = name;
+
+                // Toggle UI
+                uploadPlaceholder.style.display = 'none';
+                fileStatus.style.display = 'block';
+
+                // Disable Text Area
+                resumeText.disabled = true;
+                resumeText.style.opacity = "0.4";
+            }
+        }
+
+        // Logic: Cross button click karne par file reset
+        function clearFile(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            // 1. File input ko puri tarah khali karein
+            document.getElementById('resume_file').value = '';
+
+            // 2. UI ko reset karein
+            document.getElementById('uploadPlaceholder').style.display = 'block'; // "Click to Upload" dikhayein
+            document.getElementById('fileStatus').style.display = 'none'; // File name aur X hide karein
+
+            // 3. Text area ko wapas enable karein
+            const resumeText = document.getElementById('resume_text');
+            resumeText.disabled = false;
+            resumeText.style.opacity = "1";
+
+            console.log("File removed successfully");
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
+            const formData = new FormData(event.target);
+            const response = await fetch('/check_score', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                btn.innerText = 'Analyze Resume';
+
+                document.getElementById('result-container').style.display = 'block';
+                document.getElementById('scoreText').innerText = data.score + '% Match';
+                document.getElementById('feedbackText').innerText = data.feedback;
+
+                const missingList = document.getElementById('missingKeywords');
+                missingList.innerHTML = '';
+                data.missing.forEach(word => {
+                    let li = document.createElement('li');
+                    li.innerText = word;
+                    missingList.appendChild(li);
+                });
+
+                window.scrollTo({ top: document.getElementById('result-container').offsetTop, behavior: 'smooth' });
+            }
+        }
+
+        // Function to download PDF
+        function downloadReport() {
+            const btn = document.querySelector('.download-btn');
+            btn.style.display = 'none'; // Hide button in PDF
+            window.print();
+            btn.style.display = 'block'; // Show it back
+        }
+    </script>
+</body>
+
+</html>
